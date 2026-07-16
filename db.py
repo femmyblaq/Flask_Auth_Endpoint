@@ -1,14 +1,13 @@
-import os
-import pymysql
-from dotenv import load_dotenv
 
-load_dotenv()
+import pymysql
+from config import Config
 
 def get_connection():
     connection = pymysql.connect(
-        host=os.getenv("MYSQL_HOST"),
-        user=os.getenv("MYSQL_USER"),
-        password=os.getenv("MYSQL_PASSWORD"),
-        database=os.getenv("MYSQL_DATABASE")
+        host=Config.MYSQL_HOST,
+        user=Config.MYSQL_USER,
+        password=Config.MYSQL_PASSWORD,
+        database=Config.MYSQL_DATABASE,
+        port=Config.MYSQL_PORT
     )
     return connection
