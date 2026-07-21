@@ -18,7 +18,7 @@ def send_verification_email(email, fullname, verification_link):
     If you didn't register, please ignore this email.
 
     Regards,
-    Your Team
+    LearningPro
     """
 
     mail.send(msg)

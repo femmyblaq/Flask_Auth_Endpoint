@@ -26,7 +26,8 @@ def register():
         validate_email(email)
     except EmailNotValidError as e:
         return jsonify({"success": False, "message": str(e)}), 400
-    
+    conn = None
+    cursor = None
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -37,6 +38,7 @@ def register():
 
     if cursor.fetchone():
         cursor.close()
+        conn.close()
         return jsonify({"success": False, "message": "Email already exist"}), 409
 
 
@@ -46,8 +48,7 @@ def register():
     
     hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
     verification_token = secrets.token_urlsafe(32)
-    conn = None
-    cursor = None
+    
 
     try:
         conn = get_connection()
@@ -59,7 +60,7 @@ def register():
         )
 
         conn.commit()
-
+        cursor.close()
 
         verification_link = (f"http://localhost:5000/api/auth/verify-email/{verification_token}")
         send_verification_email(email, fullname, verification_link)
@@ -86,6 +87,8 @@ def register():
 
 @auth_bp.route("/verify-email/<token>", methods=["GET"])
 def verify_email(token):
+    cursor = None
+    # conn = None
     cursor = get_connection().cursor()
 
     cursor.execute(

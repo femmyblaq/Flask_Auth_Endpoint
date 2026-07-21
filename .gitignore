@@ -1,7 +1,4 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
+ 
 
 # Virtual Environment
 venv/
@@ -10,54 +7,3 @@ ENV/
 
 # Environment Variables
 .env
-
-# Flask
-instance/
-
-# Database
-*.db
-*.sqlite3
-
-# Logs
-*.log
-
-# IDE
-.vscode/
-.idea/
-
-# macOS
-.DS_Store
-
-# Windows
-Thumbs.db
-
-# pytest
-.pytest_cache/
-
-# coverage
-.coverage
-htmlcov/
-
-# uploads
-uploads/
-
-# build
-build/
-dist/
-
-# mypy
-.mypy_cache/
-
-# cache
-.cache/
-
-# pyenv
-.python-version
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Secrets
-*.pem
-*.key
-*.crt
