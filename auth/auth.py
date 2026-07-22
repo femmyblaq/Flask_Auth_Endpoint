@@ -62,7 +62,7 @@ def register():
         conn.commit()
         cursor.close()
 
-        verification_link = (f"http://localhost:5000/api/auth/verify-email/{verification_token}")
+        verification_link = (f"https://flask-auth-endpoint.onrender.com/api/auth/verify-email/{verification_token}")
         send_verification_email(email, fullname, verification_link)
         return jsonify({
             "success": True,
@@ -123,10 +123,10 @@ def verify_email(token):
         "message": "Email verified successfully."
     })
 
-@auth_bp.route("/", methods=["GET"])
+@auth_bp.route("/home", methods=["GET"])
 def home():
     return "Flask is running!"
 
-@auth_bp.route("/me", methods=["GET"])
-def home():
+@auth_bp.route("/user", methods=["GET"])
+def user():
     return jsonify({"success": True, "name": "HY Devinton", "skill": "Software Engineer"}), 200
