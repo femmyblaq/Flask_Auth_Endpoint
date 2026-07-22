@@ -122,3 +122,11 @@ def verify_email(token):
         "success": True,
         "message": "Email verified successfully."
     })
+
+@auth_bp.route("/", methods=["GET"])
+def home():
+    return "Flask is running!"
+
+@auth_bp.route("/me", methods=["GET"])
+def home():
+    return jsonify({"success": True, "name": "HY Devinton", "skill": "Software Engineer"}), 200
