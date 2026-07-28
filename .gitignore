@@ -3,7 +3,8 @@
 # Virtual Environment
 venv/
 env/
-ENV/
+# ENV/
 
 # Environment Variables
 .env
+certificates/
