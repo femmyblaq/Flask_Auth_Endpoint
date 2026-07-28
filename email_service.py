@@ -1,24 +1,26 @@
 from flask_mail import Message
 from extension import mail
+import traceback
 
 def send_verification_email(email, fullname, verification_link):
-    msg = Message(
-        subject="Verify your Email",
-        recipients=[email]
-    )
-    msg.body = f"""
-    Hello {fullname},
+    try:
+        msg = Message(
+            subject="Verify your Email",
+            recipients=[email]
+        )
 
-    Thank you for registering.
+        msg.body = f"""
+            Hello {fullname},
+            
+            Thank you for registering.
+            
+            Click the link below to verify your email.
+            
+            {verification_link}
+            """
 
-    Click the link below to verify your email.
+        mail.send(msg)
 
-    {verification_link}
-
-    If you didn't register, please ignore this email.
-
-    Regards,
-    LearningPro
-    """
-
-    mail.send(msg)
+    except Exception:
+        traceback.print_exc()
+        raise

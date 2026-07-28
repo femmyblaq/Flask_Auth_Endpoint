@@ -63,7 +63,7 @@ def register():
         cursor.close()
 
         verification_link = (f"https://flask-auth-endpoint.onrender.com/api/auth/verify-email/{verification_token}")
-        # send_verification_email(email, fullname, verification_link)
+        send_verification_email(email, fullname, verification_link)
         return jsonify({
             "success": True,
             "message": "User registered successfully."

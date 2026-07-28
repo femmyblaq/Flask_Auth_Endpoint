@@ -11,8 +11,9 @@ class Config:
     MYSQL_DATABASE = os.getenv("MYSQL_DATABASE")
     # SSL = {"ca", os.getenv("DB_SSL_CERT")}
     MAIL_SERVER = os.getenv("MAIL_SERVER")
-    MAIL_PORT = os.getenv("MAIL_PORT")
-    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS")
+    MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
+    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True")
+    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "False")
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
