@@ -10,6 +10,11 @@ class Config:
     MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
     MYSQL_DATABASE = os.getenv("MYSQL_DATABASE")
     # SSL = {"ca", os.getenv("DB_SSL_CERT")}
+    RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+    #Brevo Info
+    BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+    MAIL_FROM = os.getenv("MAIL_FROM")
+    MAIL_FROM_TITLE = os.getenv("MAIL_FROM_TITLE")
     MAIL_SERVER = os.getenv("MAIL_SERVER")
     MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
     MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True")
