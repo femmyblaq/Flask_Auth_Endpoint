@@ -94,42 +94,44 @@ def register():
 
 @auth_bp.route("/verify-email/<token>", methods=["GET"])
 def verify_email(token):
-    cursor = None
-    # conn = None
-    cursor = get_connection().cursor()
+    conn = get_connection()
+    cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT id FROM Users WHERE verification_token=%s
-        """, (token)
-    )
+    try:
+        cursor.execute("""
+            SELECT id
+            FROM Users
+            WHERE verification_token = %s
+            """, (token,))
 
-    user = cursor.fetchone()
-    print(f"Verifying user: {user}")
+        user = cursor.fetchone()
 
-    if not user:
-        cursor.close()
+        if not user:
+            return jsonify({
+                "success": False,
+                "message": "Invalid verification link."
+            }), 400
+
+        cursor.execute("""
+            UPDATE Users
+            SET
+                is_verified = TRUE,
+                verification_token = NULL
+            WHERE id = %s
+        """, (user["id"],))
+
+        print(cursor.fetchone())
+
+        conn.commit()
+
         return jsonify({
-            "success": False,
-            "message": "Invalid verification link."
-        }), 400
-    
-    cursor.execute(
-        """
-        UPDATE Users
-        SET
-            is_verified = TRUE,
-            verification_token = NULL
-        WHERE id=%s
-        """, (user["id"],)
-    )
-    get_connection().commit()
-    cursor.close()
+            "success": True,
+            "message": "Email verified successfully."
+        }), 200
 
-    return jsonify({
-        "success": True,
-        "message": "Email verified successfully."
-    })
+    finally:
+        cursor.close()
+        conn.close()
 
 @auth_bp.route("/home", methods=["GET"])
 def home():
@@ -171,7 +173,7 @@ def login():
                    is_verified
             FROM Users
             WHERE email=%s
-        """, (email,))
+        """, (email))
 
         user = cursor.fetchone()
         print(user)
