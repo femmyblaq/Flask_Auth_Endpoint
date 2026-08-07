@@ -2,12 +2,14 @@ from flask import Flask, config, render_template #type: ignore
 from extension import (bcrypt, mail, jwt)
 from auth.auth import auth_bp
 from config import Config
+from flask_cors import CORS
 import resend
 app = Flask(__name__)
 app.config.from_object(Config)
 
 bcrypt.init_app(app)
 jwt.init_app(app)
+CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 # app.config['MAIL_SERVER'] = Config.MAIL_SERVER
 # app.config['MAIL_PORT'] = Config.MAIL_PORT
 # app.config['MAIL_USE_TLS'] = Config.MAIL_USE_TLS
