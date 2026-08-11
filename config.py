@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 class Config:
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
     SECRET_KEY = os.getenv("MY_SECRET_KEY")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     MYSQL_HOST = os.getenv("MYSQL_HOST")

@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, url_for
 from email_validator import validate_email, EmailNotValidError
 from extension import bcrypt
 from db import get_connection
@@ -6,7 +6,7 @@ import secrets
 from email_service import send_verification_email
 from flask_jwt_extended import create_access_token
 from datetime import datetime, timedelta
-
+from oauth import google
 auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/register", methods=["POST"])
@@ -360,3 +360,93 @@ def reset_password(token):
     finally:
         cursor.close()
         conn.close()
+
+@auth_bp.route("/google", methods=["GET"])
+def google_login():
+    redirect_uri = url_for("auth.google_callback", _external=True)
+    print(f"Redirect URI: {redirect_uri}")
+    return google.authorize_redirect(redirect_uri)
+
+
+    
+@auth_bp.route('/google/callback', methods=["GET"])
+def google_callback():
+
+    try: 
+        token = google.authorize_access_token()
+        user_info = token.get("user_info")
+        
+        if not user_info:
+            return jsonify({"success": False, "message": "Unable to retrieve user information."}), 400
+
+
+        email = user_info.get("email")
+        fullname = user_info.get("name")
+        google_id = user_info.get("sub")
+
+        if not email or not google_id:
+            return jsonify({"success": False, "message": "Incomplete user information from Google."}), 400
+        
+        #check if google account already exists
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT u.id, u.fullname, u.email, u.role, u.is_verified
+            FROM OAuthAccounts o
+            JOIN Users u ON o.user_id = u.id
+            WHERE o.provider = %s AND o.provider_user_id = %s
+        """, ('google', google_id))
+
+        user = cursor.fetchone()
+        if user:
+            user_id = user["id"]
+        else:
+            #check if email already exists in Users table
+            cursor.execute("""
+                SELECT id FROM Users WHERE email = %s
+            """, (email,))
+            existing_user = cursor.fetchone()
+
+            if existing_user:
+                user_id = existing_user["id"]
+
+                #Link the Google account to the existing user
+                cursor.execute("""
+                    INSERT INTO OAuthAccounts (user_id, provider, provider_user_id)
+                    VALUES (%s, %s, %s)
+                """, (user_id, 'google', google_id))
+            else:
+                #Create a new user and link the Google account
+                cursor.execute("""
+                    INSERT INTO Users (fullname, email, password, is_verified, role)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (fullname, email, None, True, 'user'))
+                user_id = cursor.lastrowid
+
+                cursor.execute("""
+                    INSERT INTO OAuthAccounts (user_id, provider, provider_user_id)
+                    VALUES (%s, %s, %s)
+                """, (user_id, 'google', google_id))
+
+        conn.commit()
+
+        #Generate JWT token for the user
+        access_token = create_access_token(
+            identity=str(user_id),)
+        
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "message": "Google authentication successful.",
+            "access_token": access_token
+        }), 200
+
+    except Exception as e:
+        try:
+            conn.rollback()
+        except:
+            pass
+        return jsonify({"success": False, "message": f"Error during Google OAuth: {str(e)}"}), 500
