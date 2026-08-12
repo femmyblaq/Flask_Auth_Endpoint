@@ -393,7 +393,7 @@ def google_callback():
 
         cursor.execute("""
             SELECT u.id, u.fullname, u.email, u.role, u.is_verified
-            FROM OAuthAccounts o
+            FROM OAuthAccount o
             JOIN Users u ON o.user_id = u.id
             WHERE o.provider = %s AND o.provider_user_id = %s
         """, ('google', google_id))
@@ -413,7 +413,7 @@ def google_callback():
 
                 #Link the Google account to the existing user
                 cursor.execute("""
-                    INSERT INTO OAuthAccounts (user_id, provider, provider_user_id)
+                    INSERT INTO OAuthAccount (user_id, provider, provider_user_id)
                     VALUES (%s, %s, %s)
                 """, (user_id, 'google', google_id))
             else:
@@ -425,11 +425,11 @@ def google_callback():
                 user_id = cursor.lastrowid
 
                 cursor.execute("""
-                    INSERT INTO OAuthAccounts (user_id, provider, provider_user_id)
+                    INSERT INTO OAuthAccount (user_id, provider, provider_user_id)
                     VALUES (%s, %s, %s)
                 """, (user_id, 'google', google_id))
 
-        conn.commit()
+            conn.commit()
 
         #Generate JWT token for the user
         access_token = create_access_token(
