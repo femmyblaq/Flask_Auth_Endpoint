@@ -374,7 +374,8 @@ def google_callback():
 
     try: 
         token = google.authorize_access_token()
-        user_info = token.get("user_info")
+        print(f"Token:{token}")
+        user_info = token.get("userinfo")
         
         if not user_info:
             return jsonify({"success": False, "message": "Unable to retrieve user information."}), 400
@@ -383,6 +384,10 @@ def google_callback():
         email = user_info.get("email")
         fullname = user_info.get("name")
         google_id = user_info.get("sub")
+
+        print(f"User email: {email}")
+        print(f"User fullname: {fullname}")
+        print(f"User google_id: {google_id}")
 
         if not email or not google_id:
             return jsonify({"success": False, "message": "Incomplete user information from Google."}), 400
