@@ -2,6 +2,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 class Config:
+    CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+    CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+    CLOUDINARY_SECRET_KEY = os.getenv("CLOUDINARY_SECRET_KEY")
     GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
     SECRET_KEY = os.getenv("MY_SECRET_KEY")
@@ -11,7 +14,6 @@ class Config:
     MYSQL_USER = os.getenv("MYSQL_USER")
     MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
     MYSQL_DATABASE = os.getenv("MYSQL_DATABASE")
-    # SSL = {"ca", os.getenv("DB_SSL_CERT")}
     RESEND_API_KEY = os.getenv("RESEND_API_KEY")
     #Brevo Info
     BREVO_API_KEY = os.getenv("BREVO_API_KEY")
