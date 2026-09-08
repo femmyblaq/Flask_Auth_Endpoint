@@ -5,6 +5,7 @@ from db import get_connection
 from utils.decorators import instructor_required
 import cloudinary
 import cloudinary.uploader
+from utils.file_validator import validate_file
 course_bp = Blueprint("courses", __name__)
 
 @course_bp.route("/course", methods=["POST"])
@@ -655,29 +656,23 @@ def delete_module_lessons(lesson_id):
 
 
 
-@course_bp.route("/lessons/<int:lesson_id>/video", methods=["POST"])
+@course_bp.route("/lessons/<int:lesson_id>/content", methods=["POST"])
 @jwt_required()
 @instructor_required
-def upload_lesson_video(lesson_id):
+def upload_lesson_content(lesson_id):
     user_id = get_jwt_identity()
 
-    if "video" not in request.files:
+    if "file" not in request.files:
         return jsonify({
             "success": False,
-            "message": "video file is reqyuired."
+            "message": "content file is required."
         }), 400
-    video = request.files["video"]
+    file = request.files["file"]
 
-    if not video.filename:
+    if not file.filename:
         return jsonify({
             "success": False,
-            "message": "No video selected."
-        }), 400
-    
-    if not video.mimetype.startswith("video/"):
-        return jsonify({
-            "success": False,
-            "message": "Only video files are allowed."
+            "message": "No file selected."
         }), 400
     
     conn = None
@@ -695,16 +690,25 @@ def upload_lesson_video(lesson_id):
                     "success": False,
                     "message":  "Lesson not found or you do not own this lesson."
                 }), 404
-
-            if lesson["content_type"] != "VIDEO":
+            content_type = lesson["content_type"]
+            if content_type not in["VIDEO", "DOCUMENT"]:
                 return jsonify({
                     "success": False,
-                    "message": "Invalid content type. Only video lessons can upload videos."
+                    "message":  f"{content_type} lesson do not accept file upload."
                 }), 400
-
+            valid, error = validate_file(file, content_type)
+            if not valid:
+                return jsonify({
+                    "success": False,
+                    "message":  error
+                }), 400
+            if content_type == "VIDEO":
+                resource_type = "video"
+            else:
+                resource_type = "raw"
             upload_result = cloudinary.uploader.upload(
-                video,
-                resource_type="video",
+                file=file,
+                resource_type=resource_type,
                 folder="learning_platform/lessons",
             )
             video_url = upload_result.get("secure_url")
