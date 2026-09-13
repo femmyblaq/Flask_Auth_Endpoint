@@ -734,5 +734,3 @@ def upload_lesson_content(lesson_id):
         return jsonify({"success": False, "message": "Failed to upload video."}), 500
     finally:
         conn.close()
-
-    
