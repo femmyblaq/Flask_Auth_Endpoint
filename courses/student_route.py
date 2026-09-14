@@ -149,7 +149,7 @@ def get_course_details(course_id):
 @st_course_bp.route("/lesson/<int:lesson_id", methods=["GET"])
 @jwt_required()
 @student_required
-def get_lesson_details(lesson_id):
+def get_student_lesson(lesson_id):
     user_id = get_jwt_identity()
 
     conn = None
@@ -204,7 +204,7 @@ def get_lesson_details(lesson_id):
                     "message": "This lesson requires a full course purchase.",
                     "requires_purchase": True,
                     "course_id": lesson["course_id"]
-                }), 403
+                }), 403 
 
             return jsonify({
                 "success": True,
@@ -231,3 +231,68 @@ def get_lesson_details(lesson_id):
         if conn:
             conn.rollback()
         return jsonify("")
+    
+@st_course_bp("/courses/<int:course_id>/eroll", methods=["POST"])
+@jwt_required
+@student_required
+def enroll_in_course(course_id):
+
+    student_id = get_jwt_identity()
+
+    conn = None
+    try:
+        conn = get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                            SELECT id, status FROM course WHERE id = %s
+                            """, (course_id))
+            
+            course = cursor.fetchone()
+            if not course:
+                return jsonify({"success": False, "message": "Course not found!"}), 404
+
+            if course["status"] != "PUBLISHED":
+                return jsonify({
+                    "success": False,
+                    "message": "Course not available."
+                }), 400
+            
+            cursor.execute("""
+                           SLECT * FROM enrollment WHERE student_id = %s 
+                           AND course_id = %s
+                           """, (student_id, course_id))
+            
+            enrollment = cursor.fetchone()
+            if enrollment:
+                return jsonify({"success": True, "message": 
+                                "Already enrolled", 
+                                "enrollment": enrollment
+                                }), 200
+            
+            cursor.execute("""
+                            INSERT INTO enrollment (student_id, course_id, access_type, status)
+                           VALUES (%s, %s, %s, %s)
+                            """, (student_id, course_id, 'PREVIEW', 'ACTIVE'))
+            conn.commit()
+            enrollment_id = cursor.lastrowid
+
+            return jsonify({
+                "success": True,
+                "message": "Course preview enrollment created.",
+                "enrollment": {
+                    "id": enrollment_id,
+                    "course_id": course_id,
+                    "access_type": "PREVIEW",
+                    "status": "ACTIVE"
+                }
+            }), 201
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": "Failed to enroll in this course.",
+            "error": str(e)
+        }), 500
+    finally:
+        if conn:
+            conn.rollback()
