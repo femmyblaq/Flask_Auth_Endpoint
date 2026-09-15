@@ -296,3 +296,60 @@ def enroll_in_course(course_id):
     finally:
         if conn:
             conn.rollback()
+
+
+@st_course_bp("/courses/<int:course_id>/purchase", methods=["POST"])
+@jwt_required()
+@student_required
+def purchase_course(course_id):
+    student_id = get_jwt_identity()
+
+    conn = None
+    try:
+        conn = get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                            SELECT id, email FROM users WHERE id = %s
+                    """, (student_id))
+            
+            student = cursor.fetchone()
+
+            if not student:
+                return jsonify({
+                    "success": False,
+                    "message": "Student account not found."
+                }), 404
+            
+            cursor.execute("""
+                            SELECT id, title, price, currency, status FROM course WHERE id = %s
+                    """, (course_id))
+            
+            course = cursor.fetchone()
+            if not course:
+                return jsonify({
+                    "success": False,
+                    "message": "Course account not found."
+                }), 404
+            if course["status"] != "PUBLISHED":
+                return jsonify({
+                    "success": False,
+                    "message":  "Course is not available for purchase."
+                }), 400
+            
+            cursor.execute("""
+                            SELECT id, access_type,status FROM enrollment WHERE student_id = %s
+                           AND course_id = %s
+                    """, (student_id, course_id))
+            enrollment = cursor.fetchone()
+            if enrollment:
+                if(enrollment["access_type"] == "FULL" and enrollment["status"] == "ACTIVE"):
+                    return jsonify()
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": "Failed to enroll in this course.",
+            "error": str(e)
+        }), 500
+    finally:
+        if conn:
+            conn.rollback()
